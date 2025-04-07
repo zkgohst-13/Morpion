@@ -1,4 +1,4 @@
-export class Morpion {
+ class Morpion {
     constructor(gridElement) {
         this.grid = gridElement;
         this.cells = Array.from(this.grid.querySelectorAll('.cell'));
