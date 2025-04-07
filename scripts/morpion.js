@@ -1,76 +1,98 @@
-import { Morpion } from './module/morpion.js';
-new Morpion(document.querySelector('#grid'));
-// Sélection des éléments HTML
-const cell = document.querySelectorAll('.cell');
-const currentPlayer = document.querySelector('#currentPlayer');
-const winnerMessage = document.querySelector('.win-display');
+export class Morpion {
+    constructor(gridElement) {
+        this.grid = gridElement;
+        this.cells = Array.from(this.grid.querySelectorAll('.cell'));
+        this.currentPlayerDisplay = document.getElementById('currentPlayer');
+        this.playerOneScore = document.getElementById('playerOne');
+        this.playerTwoScore = document.getElementById('playerTwo');
+        this.winDisplay = this.grid.querySelector('.win-display');
+        this.replayButton = document.getElementById('replay');
+        
+        this.currentPlayer = 1;
+        this.board = Array(9).fill(null);
+        this.gameActive = true;
+        
+        this.winningCombinations = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]             
+        ];
 
-// Initialisation des variables
-let currentPlayerDisplay = 'X';
-currentPlayer.innerHTML = 'Joueur 1';
+        this.initializeGame();
+    }
 
-let board = [
-    ['', '', ''],
-    ['', '', ''],
-    ['', '', '']
-];
+    initializeGame() {
+        this.cells.forEach(cell => {
+            cell.addEventListener('click', () => this.handleCellClick(cell));
+        });
+        this.replayButton.addEventListener('click', () => this.resetGame());
+        this.updatePlayerDisplay();
+    }
 
-// Gestion des clics sur les cases
-cell.forEach((element, index) => {
-    element.addEventListener('click', () => {
-        let row = Math.floor(index / 3);
-        let col = index % 3;
+    handleCellClick(cell) {
+        if (!this.gameActive) return;
+        
+        const index = this.cells.indexOf(cell);
+        if (this.board[index] !== null) return;
 
-        if (element.innerHTML === '' && board[row][col] === '') {
-            // Met à jour la cellule et la grille
-            element.innerHTML = currentPlayerDisplay;
-            board[row][col] = currentPlayerDisplay;
-
-            // Vérifie si le joueur actuel a gagné
-            if (checkWinner()) {
-                showWinner(`Le joueur ${currentPlayerDisplay} a gagné !`);
-            } else {
-                // Alterne entre les joueurs
-                currentPlayerDisplay = currentPlayerDisplay === 'X' ? 'O' : 'X';
-                currentPlayer.innerHTML = 'Joueur ' + (currentPlayerDisplay === 'X' ? '1' : '2');
-            }
+        this.board[index] = this.currentPlayer;
+        cell.textContent = this.currentPlayer === 1 ? 'X' : 'O';
+        
+        if (this.checkWin()) {
+            this.handleWin();
+        } else if (this.board.every(cell => cell !== null)) {
+            this.handleDraw();
+        } else {
+            this.switchPlayer();
         }
-    });
+    }
+
+    checkWin() {
+        return this.winningCombinations.some(combination => {
+            return combination.every(index => {
+                return this.board[index] === this.currentPlayer;
+            });
+        });
+    }
+
+    handleWin() {
+        this.gameActive = false;
+        this.grid.classList.add('won');
+        this.winDisplay.textContent = `Joueur ${this.currentPlayer} a gagné !`;
+        
+        if (this.currentPlayer === 1) {
+            this.playerOneScore.textContent = parseInt(this.playerOneScore.textContent) + 1;
+        } else {
+            this.playerTwoScore.textContent = parseInt(this.playerTwoScore.textContent) + 1;
+        }
+    }
+
+    handleDraw() {
+        this.gameActive = false;
+        this.grid.classList.add('won');
+        this.winDisplay.textContent = "Match nul !";
+    }
+
+    switchPlayer() {
+        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+        this.updatePlayerDisplay();
+    }
+
+    updatePlayerDisplay() {
+        this.currentPlayerDisplay.textContent = `Joueur ${this.currentPlayer}`;
+    }
+
+    resetGame() {
+        this.board.fill(null);
+        this.cells.forEach(cell => cell.textContent = '');
+        this.grid.classList.remove('won');
+        this.gameActive = true;
+        this.currentPlayer = 1;
+        this.updatePlayerDisplay();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.querySelector('#grid');
+    new Morpion(grid);
 });
-
-// Vérification de la victoire
-function checkWinner() {
-    // Vérifie les lignes
-    for (let row = 0; row < 3; row++) {
-        if (board[row][0] !== '' && board[row][0] === board[row][1] && board[row][1] === board[row][2]) {
-            return true;
-        }
-    }
-
-    // Vérifie les colonnes
-    for (let col = 0; col < 3; col++) {
-        if (board[0][col] !== '' && board[0][col] === board[1][col] && board[1][col] === board[2][col]) {
-            return true;
-        }
-    }
-
-    // Vérifie les diagonales
-    if (board[0][0] !== '' && board[0][0] === board[1][1] && board[1][1] === board[2][2]) {
-        return true;
-    }
-    if (board[0][2] !== '' && board[0][2] === board[1][1] && board[1][1] === board[2][0]) {
-        return true;
-    }
-
-    return false;
-}
-
-// Affichage du message de victoire
-function showWinner(message) {
-    winnerMessage.style.display = 'block';
-    winnerMessage.innerHTML = message;
-    alert(message);
-}
-
-
-
