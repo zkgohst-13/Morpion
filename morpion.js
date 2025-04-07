@@ -1,4 +1,4 @@
-export class Morpion {
+class Morpion {
     constructor(gridElement) {
         this.grid = gridElement;
         this.cells = Array.from(this.grid.querySelectorAll('.cell'));
@@ -58,7 +58,7 @@ export class Morpion {
     handleWin() {
         this.gameActive = false;
         this.grid.classList.add('won');
-        this.winDisplay.textContent = `Joueur ${this.currentPlayer} a gagnÃ© !`;
+        this.winDisplay.textContent = `Joueur ${this.currentPlayer} a gagné !`;
         
         if (this.currentPlayer === 1) {
             this.playerOneScore.textContent = parseInt(this.playerOneScore.textContent) + 1;
